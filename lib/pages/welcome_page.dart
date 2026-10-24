@@ -14,8 +14,8 @@ class WelcomePage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFFFFF),  // Light color at the top
-              Color(0xFFd4c9ff),  // Slightly darker color at the bottom
+              Color(0xFF1C1C1C),  // Light color at the top
+              Color(0xFF0C0C0C),  // Slightly darker color at the bottom
             ],
           ),
         ),
@@ -28,7 +28,7 @@ class WelcomePage extends StatelessWidget {
                 const Spacer(flex:1), // Pushes the content down
                 // Church Icon (Placeholder for now, replace with your asset)
                 const Text(
-                  'Connect',
+                  'Disciples',
                   style: TextStyle(
                     fontFamily: 'Caprasimo', // The custom font family declared
                     fontSize: 72,
@@ -49,7 +49,7 @@ class WelcomePage extends StatelessWidget {
                 ),
                 const Spacer(flex:1),
                 Image.asset(
-                  'lib/assets/images/church_icon.png',
+                  'lib/assets/images/dc.png',
                   height: 250,
                 ),
                 const Spacer(flex:1),

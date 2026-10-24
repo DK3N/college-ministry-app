@@ -61,7 +61,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/assets/images/church_icon.png
+    - lib/assets/images/dc.png
   fonts:
     - family: Caprasimo  # The name you'll use in your app
       fonts:
