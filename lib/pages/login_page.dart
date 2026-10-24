@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'ministry_selection_page.dart';
 import 'sign_up_page.dart';
 
@@ -13,24 +12,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _supabaseClient = Supabase.instance.client;
 
-  Future<void> _login() async {
-    final response = await _supabaseClient.auth.signInWithPassword(
-      email: _emailController.text,
-      password: _passwordController.text,
+  void _login() {
+    // TODO: Implement Supabase authentication here
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MinistrySelectionPage()),
     );
-
-    if (response.error != null) {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(response.error!.message)));
-    } else {
-      // Successful login
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MinistrySelectionPage()),
-      );
-    }
   }
 
   @override
