@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'encouragement_form_page.dart';
+import 'home_page.dart';
 import 'sign_up_page.dart';
 import 'package:provider/provider.dart';
 import '../state/user_state.dart';
@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const EncouragementFormPage()),
+      MaterialPageRoute(builder: (context) => const HomePage()),
     );
   }
 

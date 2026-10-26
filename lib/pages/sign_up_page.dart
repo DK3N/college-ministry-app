@@ -1,8 +1,14 @@
+// flutter and supabase imports
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'home_page.dart';
-import 'encouragement_form_page.dart';
+
+// page imports
+import 'member_form_page.dart';
 import 'login_page.dart';
+
+// state management imports
+import 'package:provider/provider.dart';
+import '../state/user_state.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -26,19 +32,38 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() => _isLoading = true);
 
       try {
+        // creating the user account
         await Supabase.instance.client.auth.signUp(
           email: _email,
           password: _password,
         );
 
+        // immediately log in the user after creation
+        final response = await Supabase.instance.client.auth.signInWithPassword(
+          email: _email,
+          password: _password,
+        );
+
+        // fetch the member_id from database and save to UserState provider
+        try {
+          // database query for the corresponding member_id from auth login user_id
+          final memberResponse = await Supabase.instance.client.from("MEMBER").select("member_id").eq("user_id", response.user!.id).single();
+          final memberId = memberResponse["member_id"];
+          // save to UserState provider
+          if (mounted) {
+            context.read<UserState>().setMemberId(memberId);
+          }
+        } catch (e) {
+          debugPrint("Error fetching member ID: $e");
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Account created successfully!")),
           );
-
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const EncouragementFormPage()),
+            MaterialPageRoute(builder: (context) => const MemberFormPage()),
           );
         }
       } on AuthException catch (e) {

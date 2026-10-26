@@ -173,7 +173,7 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Profile form submitted successfully!'),
+              content: Text('Encouragement profile form submitted successfully!'),
               backgroundColor: Colors.green,
             ),
           );

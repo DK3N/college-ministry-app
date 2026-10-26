@@ -16,9 +16,9 @@ Future<void> main() async{
       providers: [
         ChangeNotifierProvider(
           create: (context) => UserState(),
-          child: const MyApp(),
         ),
-      ]
+      ],
+      child: const MyApp(),
     )
   );
 }
