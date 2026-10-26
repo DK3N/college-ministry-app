@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'ministry_selection_page.dart';
+import 'home_page.dart';
+import 'encouragement_form_page.dart';
 import 'login_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -17,7 +18,8 @@ class _SignUpPageState extends State<SignUpPage> {
   String _password = '';
   bool _isLoading = false;
 
-  // Handles Supabase sign up logic
+  // Helper function to handle signup
+  // takes _email and _password from
   Future<void> _handlesSignUp() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -36,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const MinistrySelectionPage()),
+            MaterialPageRoute(builder: (context) => const EncouragementFormPage()),
           );
         }
       } on AuthException catch (e) {
@@ -72,7 +74,7 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Scrollable Background & Form Card
+          // 1. Scrollable Background
           SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height,
@@ -83,6 +85,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   colors: [Color(0xFF315285), Color(0xFF545e6e)],
                 ),
               ),
+              // 2. Form Card Contents
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -92,7 +95,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
 
-          // 2. Back Button (Top Left)
+          // 3. Back Button (Top Left)
           _buildBackButton(),
         ],
       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'ministry_selection_page.dart';
+import 'encouragement_form_page.dart';
 import 'sign_up_page.dart';
+import 'package:provider/provider.dart';
+import '../state/user_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,11 +16,44 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    // TODO: Implement Supabase authentication here
+  void _login() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter email and password')));
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (mounted && response.user != null) {
+        // fetch the member_id from database and save to UserState provider
+        try {
+          // database query for the corresponding member_id from auth login user_id
+          final memberResponse = await Supabase.instance.client.from("MEMBER").select("member_id").eq("user_id", response.user!.id).single();
+          final memberId = memberResponse["member_id"];
+          // save to UserState provider
+          if (mounted) {
+            context.read<UserState>().setMemberId(memberId);
+          }
+        } catch (e) {
+          debugPrint("Error fetching member ID: $e");
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MinistrySelectionPage()),
+      MaterialPageRoute(builder: (context) => const EncouragementFormPage()),
     );
   }
 
