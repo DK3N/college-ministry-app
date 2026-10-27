@@ -1,6 +1,8 @@
 # Disciples on Campus App!
 
-An ongoing cross-platform mobile app project built with Flutter and Supabase for my campus ministry. It helps us organize our member directory, keep track of baptism dates, link discipleship mentors, and store member preferences for fun encouragement (a little movie night, anyone?).
+An **ongoing** cross-platform mobile app project built with Flutter and Supabase for my campus ministry. It helps us organize our member directory, keep track of baptism dates, link discipleship mentors, and store member preferences for fun encouragement (a little movie night, anyone?). 
+
+**Many features are still yet to come.**
 
 <!-- Tip: Drop a 5-second recording or screenshot here if you have one -->
 <!-- <p align="center"><img src="assets/demo.png" width="280" alt="App Demo" /></p> -->
