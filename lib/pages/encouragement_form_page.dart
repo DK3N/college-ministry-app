@@ -145,45 +145,8 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
 
   bool _isFetchingData = true;
 
-  // Text Fields
-  String? _nickname;
-  String? _hometown;
-  String? _major;
-  String? _favFood;
-  String? _favRestaurant;
-  String? _starbucksOrder;
-  String? _favDrink;
-  String? _favCandy;
-  String? _favDessert;
-  String? _favBakedGood;
-  String? _favScripture;
-  String? _hobbies;
-  String? _favSport;
-  String? _favBook;
-  String? _favMovie;
-  String? _favMusicGenre;
-  String? _favColor;
-  String? _favFlower;
-  String? _favAnimal;
-  String? _favHoliday;
-  String? _favDestination;
-
-  // Integer Fields
-  int? _enneagram;
-  int? _favPsalm;
-
-  // Enum Fields
-  PreferredCommunicationEnum? _preferredCommunication;
-  MyersBriggsEnum? _myersBriggs;
-  IntrovertExtrovertEnum? _introvertExtrovert;
-  LoveLanguageEnum? _loveLanguage;
-  SpiceToleranceEnum? _spiceTolerance;
-  CoffeeTeaEnum? _coffeeTea;
-  VanillaChocolateEnum? _vanillaChocolate;
-  BibleBookEnum? _favBibleBook;
-  DogsCatsEnum? _dogsCats;
-  MountainBeachEnum? _mountainsBeach;
-  SeasonEnum? _favSeason;
+  // Single dynamic Map as the scalable source of truth for all 30+ form fields!
+  final Map<String, dynamic> _formData = {};
 
   @override
   void initState() {
@@ -191,11 +154,14 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
     _fetchExistingData();
   }
 
-  String? _cleanString(dynamic value) {
+  dynamic _cleanValue(dynamic value) {
     if (value == null) return null;
-    final str = value.toString().trim();
-    if (str.isEmpty || str.toLowerCase() == 'null') return null;
-    return str;
+    if (value is String) {
+      final str = value.trim();
+      if (str.isEmpty || str.toLowerCase() == 'null') return null;
+      return str;
+    }
+    return value;
   }
 
   Future<void> _fetchExistingData() async {
@@ -213,76 +179,12 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
           .maybeSingle();
 
       if (response != null) {
-        _nickname = _cleanString(response['nickname']);
-        _hometown = _cleanString(response['hometown']);
-        _major = _cleanString(response['major']);
-        _favFood = _cleanString(response['fav_food']);
-        _favRestaurant = _cleanString(response['fav_restaurant']);
-        _starbucksOrder = _cleanString(response['starbucks_order']);
-        _favDrink = _cleanString(response['fav_drink']);
-        _favCandy = _cleanString(response['fav_candy']);
-        _favDessert = _cleanString(response['fav_dessert']);
-        _favBakedGood = _cleanString(response['fav_baked_good']);
-        _favScripture = _cleanString(response['fav_scripture']);
-        _hobbies = _cleanString(response['hobbies']);
-        _favSport = _cleanString(response['fav_sport']);
-        _favBook = _cleanString(response['fav_book']);
-        _favMovie = _cleanString(response['fav_movie']);
-        _favMusicGenre = _cleanString(response['fav_music_genre']);
-        _favColor = _cleanString(response['fav_color']);
-        _favFlower = _cleanString(response['fav_flower']);
-        _favAnimal = _cleanString(response['fav_animal']);
-        _favHoliday = _cleanString(response['fav_holiday']);
-        _favDestination = _cleanString(response['fav_destination']);
-
-        // Integers
-        _enneagram = response['enneagram'] is int ? response['enneagram'] : int.tryParse(response['enneagram']?.toString() ?? '');
-        _favPsalm = response['fav_psalm'] is int ? response['fav_psalm'] : int.tryParse(response['fav_psalm']?.toString() ?? '');
-
-        // Enums
-        final prefComm = _cleanString(response['preferred_communication']);
-        if (prefComm != null) {
-          _preferredCommunication = PreferredCommunicationEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == prefComm.toLowerCase(), orElse: () => PreferredCommunicationEnum.text);
-        }
-        final mb = _cleanString(response['myers_briggs']);
-        if (mb != null) {
-          _myersBriggs = MyersBriggsEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == mb.toLowerCase(), orElse: () => MyersBriggsEnum.intj);
-        }
-        final ie = _cleanString(response['introvert_extrovert']);
-        if (ie != null) {
-          _introvertExtrovert = IntrovertExtrovertEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == ie.toLowerCase(), orElse: () => IntrovertExtrovertEnum.introvert);
-        }
-        final ll = _cleanString(response['love_language']);
-        if (ll != null) {
-          _loveLanguage = LoveLanguageEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == ll.toLowerCase(), orElse: () => LoveLanguageEnum.wordsOfAffirmation);
-        }
-        final st = _cleanString(response['spice_tolerance']);
-        if (st != null) {
-          _spiceTolerance = SpiceToleranceEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == st.toLowerCase(), orElse: () => SpiceToleranceEnum.medium);
-        }
-        final ct = _cleanString(response['coffee_tea']);
-        if (ct != null) {
-          _coffeeTea = CoffeeTeaEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == ct.toLowerCase(), orElse: () => CoffeeTeaEnum.coffee);
-        }
-        final vc = _cleanString(response['vanilla_chocolate']);
-        if (vc != null) {
-          _vanillaChocolate = VanillaChocolateEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == vc.toLowerCase(), orElse: () => VanillaChocolateEnum.chocolate);
-        }
-        final bb = _cleanString(response['fav_bible_book']);
-        if (bb != null) {
-          _favBibleBook = BibleBookEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == bb.toLowerCase(), orElse: () => BibleBookEnum.john);
-        }
-        final dc = _cleanString(response['dogs_cats']);
-        if (dc != null) {
-          _dogsCats = DogsCatsEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == dc.toLowerCase(), orElse: () => DogsCatsEnum.dogs);
-        }
-        final mbBeach = _cleanString(response['mountains_beach']);
-        if (mbBeach != null) {
-          _mountainsBeach = MountainBeachEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == mbBeach.toLowerCase(), orElse: () => MountainBeachEnum.beach);
-        }
-        final fs = _cleanString(response['fav_season']);
-        if (fs != null) {
-          _favSeason = SeasonEnum.values.firstWhere((e) => e.dbValue.toLowerCase() == fs.toLowerCase(), orElse: () => SeasonEnum.fall);
+        // Dynamically populate _formData with only non-null values
+        for (var entry in response.entries) {
+          final cleaned = _cleanValue(entry.value);
+          if (cleaned != null) {
+            _formData[entry.key] = cleaned;
+          }
         }
       }
     } catch (e) {
@@ -293,7 +195,69 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
   }
 
   Future<void> _submitForm() async {
-    // TODO: Write your _submitForm logic here!
+    // validate optional input rules (for example, Enneagram must be 1 thru 9 if filled)
+    if (_formKey.currentState!.validate()) {
+      // trigger onSaved across all fields to update _formData with the latest inputs
+      _formKey.currentState!.save();
+
+      // retreive the global memberId from Provider
+      final int? memberId = context.read<UserState>().memberId;
+
+      if (memberId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error: Member ID not found. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      try {
+        // inject the primary key into the map payload
+        _formData["member_id"] = memberId;
+
+        // send payload to Supabase using upsert()
+        // because omitted keys are left out of the map, PostgreSQL
+        // will ONLY update the fields present in _formData, leaving existing db fields safe
+        if (_formData.length > 1) { // 1 since member_id is always present
+          await Supabase.instance.client.from("MEMBER_FACTS").upsert(_formData);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Encouragement profile saved successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // return the user to the HomePage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+                (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error saving profile: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } else {
+      // Show error if a field failed validation (e.g. Enneagram > 9)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the invalid inputs in red before submitting.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -333,123 +297,60 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
 
                             // SECTION 1: BASIC BACKGROUND
                             _buildSubHeader('👤BASIC BACKGROUND'),
-                            _buildTextField('Nickname', _nickname, (v) => _nickname = v),
-                            _buildTextField('Hometown', _hometown, (v) => _hometown = v),
-                            _buildTextField('Major', _major, (v) => _major = v),
+                            _buildTextField('Nickname', 'nickname'),
+                            _buildTextField('Hometown', 'hometown'),
+                            _buildTextField('Major', 'major'),
                             _buildEnumDropdown(
                               'Preferred Method of Communication',
-                              _preferredCommunication,
+                              'preferred_communication',
                               PreferredCommunicationEnum.values,
-                              (v) => setState(() => _preferredCommunication = v),
                             ),
                             const SizedBox(height: 10),
 
                             // SECTION 2: PERSONALITY
                             _buildSubHeader('😄PERSONALITY'),
-                            _buildEnumDropdown(
-                              'Myers-Briggs Type',
-                              _myersBriggs,
-                              MyersBriggsEnum.values,
-                              (v) => setState(() => _myersBriggs = v),
-                            ),
-                            _buildIntegerField(
-                              'Enneagram (1-9)',
-                              _enneagram?.toString(),
-                              (v) => _enneagram = int.tryParse(v ?? ''),
-                              min: 1,
-                              max: 9,
-                            ),
-                            _buildEnumDropdown(
-                              'Introvert or Extrovert?',
-                              _introvertExtrovert,
-                              IntrovertExtrovertEnum.values,
-                              (v) => setState(() => _introvertExtrovert = v),
-                            ),
-                            _buildEnumDropdown(
-                              'Love Language',
-                              _loveLanguage,
-                              LoveLanguageEnum.values,
-                              (v) => setState(() => _loveLanguage = v),
-                            ),
+                            _buildEnumDropdown('Myers-Briggs Type', 'mbti', MyersBriggsEnum.values),
+                            _buildIntegerField('Enneagram (1-9)', 'enneagram', min: 1, max: 9),
+                            _buildEnumDropdown('Introvert or Extrovert?', 'introvert_or_extrovert', IntrovertExtrovertEnum.values),
+                            _buildEnumDropdown('Love Language', 'love_language', LoveLanguageEnum.values),
                             const SizedBox(height: 10),
 
                             // SECTION 3: FOOD, DRINKS, CRAVINGS
                             _buildSubHeader('🍎FOOD, DRINKS, CRAVINGS'),
-                            _buildTextField('Favorite Food', _favFood, (v) => _favFood = v),
-                            _buildTextField('Favorite Restaurant', _favRestaurant, (v) => _favRestaurant = v),
-                            _buildEnumDropdown(
-                              'Spice Tolerance',
-                              _spiceTolerance,
-                              SpiceToleranceEnum.values,
-                              (v) => setState(() => _spiceTolerance = v),
-                            ),
-                            _buildTextField('Starbucks Order', _starbucksOrder, (v) => _starbucksOrder = v),
-                            _buildEnumDropdown(
-                              'Coffee or Tea?',
-                              _coffeeTea,
-                              CoffeeTeaEnum.values,
-                              (v) => setState(() => _coffeeTea = v),
-                            ),
-                            _buildTextField('Favorite Drink', _favDrink, (v) => _favDrink = v),
-                            _buildTextField('Favorite Candy', _favCandy, (v) => _favCandy = v),
-                            _buildTextField('Favorite Dessert', _favDessert, (v) => _favDessert = v),
-                            _buildTextField('Favorite Baked Good', _favBakedGood, (v) => _favBakedGood = v),
-                            _buildEnumDropdown(
-                              'Vanilla or Chocolate?',
-                              _vanillaChocolate,
-                              VanillaChocolateEnum.values,
-                              (v) => setState(() => _vanillaChocolate = v),
-                            ),
+                            _buildTextField('Favorite Food', 'fav_food'),
+                            _buildTextField('Favorite Restaurant', 'fav_restaurant'),
+                            _buildEnumDropdown('Spice Tolerance', 'spice_tolerance', SpiceToleranceEnum.values),
+                            _buildTextField('Starbucks Order', 'starbucks_order'),
+                            _buildEnumDropdown('Coffee or Tea?', 'coffee_or_tea', CoffeeTeaEnum.values),
+                            _buildTextField('Favorite Drink', 'fav_drink'),
+                            _buildTextField('Favorite Candy', 'fav_candy'),
+                            _buildTextField('Favorite Dessert', 'fav_dessert'),
+                            _buildTextField('Favorite Baked Good', 'fav_baked_good'),
+                            _buildEnumDropdown('Vanilla or Chocolate?', 'vanilla_or_chocolate', VanillaChocolateEnum.values),
                             const SizedBox(height: 10),
 
                             // SECTION 4: INTERESTS & ENTERTAINMENT
                             _buildSubHeader('🎬INTERESTS & ENTERTAINMENT'),
-                            _buildTextField('Favorite Scripture', _favScripture, (v) => _favScripture = v),
-                            _buildEnumDropdown(
-                              'Favorite Book of the Bible',
-                              _favBibleBook,
-                              BibleBookEnum.values,
-                              (v) => setState(() => _favBibleBook = v),
-                            ),
-                            _buildIntegerField(
-                              'Favorite Psalm (1-150)',
-                              _favPsalm?.toString(),
-                              (v) => _favPsalm = int.tryParse(v ?? ''),
-                              min: 1,
-                              max: 150,
-                            ),
-                            _buildTextField('Hobbies', _hobbies, (v) => _hobbies = v),
-                            _buildTextField('Favorite Sport', _favSport, (v) => _favSport = v),
-                            _buildTextField('Favorite Book', _favBook, (v) => _favBook = v),
-                            _buildTextField('Favorite Movie / Show', _favMovie, (v) => _favMovie = v),
-                            _buildTextField('Favorite Music Genre', _favMusicGenre, (v) => _favMusicGenre = v),
+                            _buildTextField('Favorite Scripture', 'fav_scripture'),
+                            _buildEnumDropdown('Favorite Book of the Bible', 'fav_bible_book', BibleBookEnum.values),
+                            _buildIntegerField('Favorite Psalm (1-150)', 'fav_psalm', min: 1, max: 150),
+                            _buildTextField('Hobbies', 'hobbies'),
+                            _buildTextField('Favorite Sport', 'fav_sport'),
+                            _buildTextField('Favorite Book', 'fav_book'),
+                            _buildTextField('Favorite Movie / Show', 'fav_movie_show'),
+                            _buildTextField('Favorite Music Genre', 'fav_music_genre'),
                             const SizedBox(height: 10),
 
                             // SECTION 5: GENERAL FAVORITES
                             _buildSubHeader('⭐GENERAL FAVORITES'),
-                            _buildTextField('Favorite Color', _favColor, (v) => _favColor = v),
-                            _buildTextField('Favorite Flower', _favFlower, (v) => _favFlower = v),
-                            _buildTextField('Favorite Animal', _favAnimal, (v) => _favAnimal = v),
-                            _buildEnumDropdown(
-                              'Dogs or Cats?',
-                              _dogsCats,
-                              DogsCatsEnum.values,
-                              (v) => setState(() => _dogsCats = v),
-                            ),
-                            _buildEnumDropdown(
-                              'Mountains or Beach?',
-                              _mountainsBeach,
-                              MountainBeachEnum.values,
-                              (v) => setState(() => _mountainsBeach = v),
-                            ),
-                            _buildEnumDropdown(
-                              'Favorite Season',
-                              _favSeason,
-                              SeasonEnum.values,
-                              (v) => setState(() => _favSeason = v),
-                            ),
-                            _buildTextField('Favorite Holiday', _favHoliday, (v) => _favHoliday = v),
-                            _buildTextField('Dream / Favorite Destination', _favDestination, (v) => _favDestination = v),
+                            _buildTextField('Favorite Color', 'fav_color'),
+                            _buildTextField('Favorite Flower', 'fav_flower'),
+                            _buildTextField('Favorite Animal', 'fav_animal'),
+                            _buildEnumDropdown('Dogs or Cats?', 'dogs_or_cats', DogsCatsEnum.values),
+                            _buildEnumDropdown('Mountains or Beach?', 'mountains_or_beach', MountainBeachEnum.values),
+                            _buildEnumDropdown('Favorite Season', 'fav_season', SeasonEnum.values),
+                            _buildTextField('Favorite Holiday', 'fav_holiday'),
+                            _buildTextField('Dream / Favorite Destination', 'fav_destination'),
                             const SizedBox(height: 35),
 
                             _buildSubmitButton(),
@@ -503,7 +404,7 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
     );
   }
 
-  Widget _buildTextField(String label, String? initialValue, Function(String?) onSaved) {
+  Widget _buildTextField(String label, String dbKey) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -512,9 +413,15 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
           Text(label, style: const TextStyle(color: Colors.white70, fontFamily: 'Yeseva', fontSize: 14)),
           const SizedBox(height: 6),
           TextFormField(
-            initialValue: initialValue,
+            initialValue: _formData[dbKey]?.toString(),
             style: const TextStyle(color: Colors.white, fontFamily: 'Yeseva', fontSize: 16),
-            onSaved: onSaved,
+            onSaved: (value) {
+              if (value != null && value.trim().isNotEmpty) {
+                _formData[dbKey] = value.trim();
+              } else {
+                _formData.remove(dbKey);
+              }
+            },
             decoration: InputDecoration(
               hintText: 'Enter $label',
               hintStyle: const TextStyle(color: Colors.white24, fontFamily: 'Yeseva'),
@@ -532,7 +439,7 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
     );
   }
 
-  Widget _buildIntegerField(String label, String? initialValue, Function(String?) onSaved, {required int min, required int max}) {
+  Widget _buildIntegerField(String label, String dbKey, {required int min, required int max}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -541,18 +448,24 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
           Text(label, style: const TextStyle(color: Colors.white70, fontFamily: 'Yeseva', fontSize: 14)),
           const SizedBox(height: 6),
           TextFormField(
-            initialValue: initialValue,
+            initialValue: _formData[dbKey]?.toString(),
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(color: Colors.white, fontFamily: 'Yeseva', fontSize: 16),
             validator: (value) {
-              if (value == null || value.trim().isEmpty) return null; // 👈 Fully optional!
+              if (value == null || value.trim().isEmpty) return null;
               final intVal = int.tryParse(value);
               if (intVal == null) return 'Must be a valid number.';
               if (intVal < min || intVal > max) return 'Must be between $min and $max.';
               return null;
             },
-            onSaved: onSaved,
+            onSaved: (value) {
+              if (value != null && value.trim().isNotEmpty) {
+                _formData[dbKey] = int.parse(value.trim());
+              } else {
+                _formData.remove(dbKey);
+              }
+            },
             decoration: InputDecoration(
               hintText: 'e.g. $min',
               hintStyle: const TextStyle(color: Colors.white24, fontFamily: 'Yeseva'),
@@ -572,10 +485,20 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
 
   Widget _buildEnumDropdown<T extends Enum>(
     String label,
-    T? currentValue,
+    String dbKey,
     List<T> items,
-    ValueChanged<T?> onChanged,
   ) {
+    // Find initial Enum item matching current string in _formData[dbKey]
+    T? initialEnum;
+    if (_formData[dbKey] != null) {
+      final String currentVal = _formData[dbKey].toString().toLowerCase();
+      try {
+        initialEnum = items.firstWhere(
+          (item) => (item as dynamic).dbValue.toString().toLowerCase() == currentVal,
+        );
+      } catch (_) {}
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -584,7 +507,15 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
           Text(label, style: const TextStyle(color: Colors.white70, fontFamily: 'Yeseva', fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<T>(
-            initialValue: currentValue,
+            initialValue: initialEnum,
+            onSaved: (value) {
+              if (value != null) {
+                final dynamic enumItem = value;
+                _formData[dbKey] = enumItem.dbValue;
+              } else {
+                _formData.remove(dbKey);
+              }
+            },
             hint: const Text('Select...', style: TextStyle(color: Colors.white24, fontFamily: 'Yeseva', fontSize: 16)),
             dropdownColor: const Color(0xFF282828),
             style: const TextStyle(color: Colors.white, fontFamily: 'Yeseva', fontSize: 16),
@@ -604,7 +535,14 @@ class _EncouragementFormPageState extends State<EncouragementFormPage> {
                 child: Text(enumItem.uiLabel),
               );
             }).toList(),
-            onChanged: onChanged,
+            onChanged: (selectedEnum) {
+              if (selectedEnum != null) {
+                final dynamic enumItem = selectedEnum;
+                _formData[dbKey] = enumItem.dbValue;
+              } else {
+                _formData.remove(dbKey);
+              }
+            },
           ),
         ],
       ),
