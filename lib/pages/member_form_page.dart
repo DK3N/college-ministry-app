@@ -25,8 +25,8 @@ enum SchoolEnum {
 }
 
 enum SexEnum {
-  fiu('male', 'Male'),
-  um('female', 'Female');
+  male('male', 'Male'),
+  female('female', 'Female');
   final String dbValue;
   final String uiLabel;
   const SexEnum(this.dbValue, this.uiLabel);
@@ -79,9 +79,12 @@ class _MemberFormPageState extends State<MemberFormPage> {
         return;
       }
 
-      // Data payloads -- we include every field since every field in the form is mandatory!
+      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+      // Data payloads -- we include every field since every field in the form is mandatory
       final memberData = {
         "member_id": memberId,
+        "user_id": currentUserId,
         "first_name": _firstName,
         "last_name": _lastName,
         "school": _school?.dbValue,
@@ -149,6 +152,13 @@ class _MemberFormPageState extends State<MemberFormPage> {
     _fetchExistingData();
   }
 
+  String? _cleanString(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString().trim();
+    if (str.isEmpty || str.toLowerCase() == 'null') return null;
+    return str;
+  }
+
   Future<void> _fetchExistingData() async {
     // get the memberId from our UserState provider
     final memberId = context.read<UserState>().memberId;
@@ -166,24 +176,43 @@ class _MemberFormPageState extends State<MemberFormPage> {
       final baptizerResponse = await Supabase.instance.client.from("PERFORMED_BAPTISM").select().eq("baptized_member_id", memberId).maybeSingle();
 
       if (memberResponse != null) {
-        _firstName = memberResponse['first_name'];
-        _lastName = memberResponse['last_name'];
+        _firstName = _cleanString(memberResponse['first_name']);
+        _lastName = _cleanString(memberResponse['last_name']);
         if (memberResponse['school'] != null) {
-          _school = SchoolEnum.values.firstWhere((enumItem) => enumItem.dbValue == memberResponse['school']);
+          final dbSchool = _cleanString(memberResponse['school']);
+          if (dbSchool != null) {
+            _school = SchoolEnum.values.firstWhere(
+              (enumItem) => enumItem.dbValue.toLowerCase() == dbSchool.toLowerCase(),
+              orElse: () => SchoolEnum.other,
+            );
+          }
         }
         if (memberResponse['sex'] != null) {
-          _sex = SexEnum.values.firstWhere((enumItem) => enumItem.dbValue == memberResponse['sex']);
+          final dbSex = _cleanString(memberResponse['sex']);
+          if (dbSex != null) {
+            _sex = SexEnum.values.firstWhere(
+              (enumItem) => enumItem.dbValue.toLowerCase() == dbSex.toLowerCase(),
+              orElse: () => SexEnum.male,
+            );
+          }
         }
         if (memberResponse['birthdate'] != null) {
-          _birthday = DateTime.tryParse(memberResponse['birthdate'].toString());
+          final parsedDate = DateTime.tryParse(memberResponse['birthdate'].toString());
+          // Ignore dummy default dates (like 1970-01-01)
+          if (parsedDate != null && parsedDate.year > 1920) {
+            _birthday = parsedDate;
+          }
         }
       }
       
       if (baptismResponse != null) {
         if (baptismResponse['date'] != null) {
-          _baptismDate = DateTime.tryParse(baptismResponse['date'].toString());
+          final parsedDate = DateTime.tryParse(baptismResponse['date'].toString());
+          if (parsedDate != null && parsedDate.year > 1920) {
+            _baptismDate = parsedDate;
+          }
         }
-        _baptismLocation = baptismResponse['location'];
+        _baptismLocation = _cleanString(baptismResponse['location']);
       }
       
       if (baptizerResponse != null && baptizerResponse['performer_member_ids'] != null) {
@@ -193,7 +222,23 @@ class _MemberFormPageState extends State<MemberFormPage> {
       
       // Fetch all members to populate our multi-select dialog checkboxes!
       final allMembersResponse = await Supabase.instance.client.from("MEMBER").select('member_id, first_name, last_name');
-      if (mounted) setState(() => _allMembers = List<Map<String, dynamic>>.from(allMembersResponse));
+      final fetchedMembers = <Map<String, dynamic>>[
+        {'member_id': -1, 'first_name': 'Other / Out of town', 'last_name': ''}
+      ];
+
+      for (var row in allMembersResponse) {
+        final fName = _cleanString(row['first_name']);
+        final lName = _cleanString(row['last_name']);
+        // Only include members who actually have a name filled out (filters out uninitialized "NULL NULL" users)
+        if (fName != null || lName != null) {
+          fetchedMembers.add({
+            'member_id': row['member_id'],
+            'first_name': fName ?? '',
+            'last_name': lName ?? '',
+          });
+        }
+      }
+      if (mounted) setState(() => _allMembers = fetchedMembers);
     } catch (e) {
       debugPrint("Error fetching existing data: $e");
     } finally {
@@ -531,7 +576,9 @@ class _MemberFormPageState extends State<MemberFormPage> {
     if (_selectedBaptizerIds.isNotEmpty) {
       final selectedNames = _allMembers
           .where((m) => _selectedBaptizerIds.contains(m['member_id']))
-          .map((m) => '${m['first_name']} ${m['last_name']}')
+          .map((m) => m['member_id'] == -1 
+              ? 'Other / Out of town' 
+              : '${m['first_name']} ${m['last_name']}'.trim())
           .toList();
       displayString = selectedNames.join(', ');
     }
@@ -601,7 +648,9 @@ class _MemberFormPageState extends State<MemberFormPage> {
                       activeColor: const Color(0xFF3E6990),
                       checkColor: Colors.white,
                       title: Text(
-                        '${member['first_name']} ${member['last_name']}',
+                        member['member_id'] == -1
+                            ? 'Other / Out of town'
+                            : '${member['first_name']} ${member['last_name']}'.trim(),
                         style: const TextStyle(fontFamily: 'Yeseva', color: Colors.white),
                       ),
                       value: isChecked,

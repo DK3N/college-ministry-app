@@ -33,38 +33,54 @@ class _SignUpPageState extends State<SignUpPage> {
 
       try {
         // creating the user account
-        await Supabase.instance.client.auth.signUp(
+        final response = await Supabase.instance.client.auth.signUp(
           email: _email,
           password: _password,
         );
 
-        // immediately log in the user after creation
-        final response = await Supabase.instance.client.auth.signInWithPassword(
-          email: _email,
-          password: _password,
-        );
+        if (mounted && response.user != null) {
+          try {
+            // Because of our new Supabase Database Trigger, 
+            // this row is being created right now, so we wait for stream to push it
+            debugPrint("Waiting for DB Trigger via Realtime stream: account creation");
 
-        // fetch the member_id from database and save to UserState provider
-        try {
-          // database query for the corresponding member_id from auth login user_id
-          final memberResponse = await Supabase.instance.client.from("MEMBER").select("member_id").eq("user_id", response.user!.id).single();
-          final memberId = memberResponse["member_id"];
-          // save to UserState provider
-          if (mounted) {
-            context.read<UserState>().setMemberId(memberId);
+            final memberList = await Supabase.instance.client
+              .from("MEMBER")
+              .stream(primaryKey: ["member_id"])
+              .eq("user_id", response.user!.id)
+              .firstWhere((list) => list.isNotEmpty)  // Skips the initial empty snapshot and waits for the inserted row
+              .timeout(const Duration(seconds: 5)); // failsafe
+
+            // stream().first returns a List<Map>, we just need the first item
+            if (memberList.isNotEmpty) {
+              final memberId = memberList.first['member_id'];
+              debugPrint("Successfully received memberId from stream: $memberId");
+              if (mounted) {
+                context.read<UserState>().setMemberId(memberId);
+                debugPrint("Successfully set memberId in UserState!");
+              }
+            }
+            else {
+              debugPrint('Stream returned empty list unexpectedly.');
+            }
+
+          } catch (e) {
+            debugPrint('Error fetching member ID after sign up: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Warning: Could not fetch Member Profile. $e'), backgroundColor: Colors.orange),
+              );
+            }
           }
-        } catch (e) {
-          debugPrint("Error fetching member ID: $e");
-        }
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Account created successfully!")),
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MemberFormPage()),
-          );
+          // Move to the next page
+          if (mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const MemberFormPage()),
+                (route) => false,
+              );
+          }
         }
       } on AuthException catch (e) {
         if (mounted) {
@@ -261,7 +277,7 @@ class _SignUpPageState extends State<SignUpPage> {
         color: Colors.black,
       ),
       validator: validator,
-      onSaved: (value) => _password = value ?? '',
+      onSaved: onSaved,
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: const TextStyle(
